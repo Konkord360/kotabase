@@ -1,6 +1,7 @@
 package filesystem
 
 import kotlin.test.assertEquals
+import org.example.ResultObject
 import org.example.filesystem.DataManagement
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,11 +24,14 @@ class DataManagementTest {
     @Test
     fun selectAll() {
         assertEquals(
-            """
-            DATA|DATA2
-            HELLO THERE|NOT ME
-            """
-                .trimIndent(),
+            ResultObject(
+                """
+                DATA|DATA2
+                HELLO THERE|NOT ME
+                """
+                    .trimIndent(),
+                "",
+            ),
             dataManagement.executeStatement("SELECT * FROM test"),
         )
     }
@@ -35,11 +39,14 @@ class DataManagementTest {
     @Test
     fun selectFirstColumn() {
         assertEquals(
-            """
+            ResultObject(
+                """
             DATA
             HELLO THERE
             """
-                .trimIndent(),
+                    .trimIndent(),
+                "",
+            ),
             dataManagement.executeStatement("SELECT data FROM test"),
         )
     }
@@ -47,11 +54,14 @@ class DataManagementTest {
     @Test
     fun selectSecondColumn() {
         assertEquals(
-            """
+            ResultObject(
+                """
             DATA2
             NOT ME
             """
-                .trimIndent(),
+                    .trimIndent(),
+                "",
+            ),
             dataManagement.executeStatement("SELECT data2 FROM test"),
         )
     }

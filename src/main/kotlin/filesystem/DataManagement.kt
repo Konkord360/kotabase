@@ -1,6 +1,9 @@
 package org.example.filesystem
 
 import java.io.File
+import org.example.ResultObject
+import java.io.RandomAccessFile
+import java.util.*
 
 class DataManagement {
     private val fileReader = File("data/test")
@@ -22,28 +25,40 @@ class DataManagement {
     // what about data structure
     // first line columnNames seperated by |
     // rest of the file - data seperated by |
-    fun executeStatement(statement: String): String {
-        // SELECT/UPDATE/DELETE
+    // Desing for simple data types - string, int, byte
+    fun executeStatement(statement: String): ResultObject<String> {
+//        val test = TreeMap<String, String>()
+        // SELECT/UPDATE/DELETE/TRUNCATE/INSERT
+        // WTF Do I do with crazy SQL like select * from (Select * from test where whatever)//recursive parsing?//Crazy regex?
         val tokens = statement.split(" ").map { it.uppercase() }
-        when (tokens[0]) {
+        return when (tokens[0]) {
             "SELECT" -> {
-                assert(tokens.size >= 4)
+                if(tokens.size < 4) {
+                    return ResultObject("", "SELECT statement must have at least 4 tokens")
+                }
                 val fields = tokens[1]
                 assert(tokens[2] == "FROM")
                 val table = Table(tokens[3].lowercase())
-                if (fields == "*") {
-                    return table.readAll()
+                return if (fields == "*") {
+                    ResultObject(table.readAll(), "")
                 } else {
-                    return table.readColumn(fields)
+                    ResultObject(table.readColumn(fields), "")
                 }
             }
             "INSERT" -> {
-                throw UnsupportedOperationException("Not implemented.")
+                ResultObject("", "Not implemented")
             }
             "UPDATE" -> {
-                throw UnsupportedOperationException("Not implemented.")
+                ResultObject("", "Not implemented")
             }
-            else -> throw UnsupportedOperationException("Unknown SQL OPERATION ${tokens[0]}")
+            "TRUNCATE" -> {
+                ResultObject("", "Not implemented")
+            }
+            "DELETE" -> {
+                ResultObject("", "Not implemented")
+            }
+
+            else -> ResultObject("", "Unknown SQL OPERATION ${tokens[0]}")
         }
     }
 
@@ -79,7 +94,7 @@ data class Table(val name: String) {
         }
         for (index in lines.indices) {
             returnString.append(lines[index].split("|")[columnIndex])
-            if(index != lines.size - 1) {
+            if (index != lines.size - 1) {
                 returnString.append("\n")
             }
         }
