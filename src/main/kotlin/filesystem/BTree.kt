@@ -85,6 +85,7 @@ data class Node(val value: List<Int>, val nodes: List<Node>)
 data class Leaf(val data: List<String>) {}
 
 // Splitting is kinda ugly with the usage of var - is there any other way to do it?
+// Now instead of just splitting and popping the middle value it should add it back to the parent list if possible
 fun BTreeNode.split() {
     val splitIndex = this.elements.size / 2
     //copies are required in order to not throw ConcurrentModificationException

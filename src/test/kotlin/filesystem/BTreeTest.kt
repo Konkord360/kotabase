@@ -109,6 +109,7 @@ class BTreeTest {
         assertEquals(
             listOf(
                 // THats what the implementation did but it is sooo wrong
+                // Now it is supposed to pop the 6 back to the parent
                 BTreeElement(
                     3,
                     left = BTreeNode(mutableListOf(BTreeElement(-1), BTreeElement(1), BTreeElement(2))),
