@@ -18,13 +18,22 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) {
         node: BTreeNode,
         valueToBeInserted: BTreeElement,
     ): BTreeNode {
-        for (i in 0..<node.elements.size) {
+        for (i in node.elements.indices) {
             if (
+                i == 0 &&
                 valueToBeInserted.value < node.elements[i].value &&
                     node.elements[i].left != null &&
                     node.elements[i].left!!.elements.isNotEmpty()
             ) {
                 return getInsertionNodeRecursive(node.elements[i].left!!, valueToBeInserted)
+            } else if (
+                    i > 0 &&
+                    valueToBeInserted.value < node.elements[i].value &&
+                    valueToBeInserted.value > node.elements[i - 1].value &&
+                    node.elements[i].left != null &&
+                    node.elements[i].left!!.elements.isNotEmpty()
+                ) {
+                    return getInsertionNodeRecursive(node.elements[i].left!!, valueToBeInserted)
             } else if (
                 i < node.elements.size - 1 &&
                     valueToBeInserted.value > node.elements[i].value &&
@@ -65,15 +74,26 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) {
 
     // Fix shouldn't be needed - split should handle that - maybe tree should split its nodes and
     // not node itself
+    //
     private fun fixChildren(node: BTreeNode) {
         node.elements.forEachIndexed { index, element ->
             if (index < node.elements.size - 1) {
-                element.right = node.elements[index + 1].left
+                if (
+                    node.elements[index + 1].left != null &&
+                        node.elements[index + 1].left!!.elements.isNotEmpty()
+                ) {
+                    element.right = node.elements[index + 1].left
+                } else if (
+                    node.elements[index].right != null &&
+                        node.elements[index].right!!.elements.isNotEmpty()
+                ) {
+                    node.elements[index + 1].left = element.right
+                }
             }
-            if (element.left != null) {
+            if (element.left != null && element.left!!.elements.isNotEmpty()) {
                 fixChildren(element.left!!)
             }
-            if (element.right != null) {
+            if (element.right != null && element.right!!.elements.isNotEmpty()) {
                 fixChildren(element.right!!)
             }
         }
