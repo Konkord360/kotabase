@@ -1,11 +1,8 @@
 package filesystem
 
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.example.filesystem.BTree
-import org.example.filesystem.BTreeElement
 import org.example.filesystem.BTreeNode
 import org.junit.jupiter.api.DisplayName
 
@@ -17,7 +14,9 @@ class BTreeExtendedTest {
         // Test with max size 3 (minimum practical size)
         val smallTree = BTree(50, 3)
         // Fill with values that will cause multiple splits
-        listOf(25, 75, 10, 30, 60, 90, 5, 15, 20, 35, 55, 65, 80, 95).forEach { smallTree.insert(it) }
+        listOf(25, 75, 10, 30, 60, 90, 5, 15, 20, 35, 55, 65, 80, 95).forEach {
+            smallTree.insert(it)
+        }
 
         // Tree structure validation
         assertTrue(smallTree.valueList.elements.size <= 3)
@@ -27,7 +26,9 @@ class BTreeExtendedTest {
         // Test with larger max size
         val largeTree = BTree(50, 6)
         // Same values
-        listOf(25, 75, 10, 30, 60, 90, 5, 15, 20, 35, 55, 65, 80, 95).forEach { largeTree.insert(it) }
+        listOf(25, 75, 10, 30, 60, 90, 5, 15, 20, 35, 55, 65, 80, 95).forEach {
+            largeTree.insert(it)
+        }
 
         validateNodeSizes(largeTree.valueList, 6)
         validateTreeOrder(largeTree.valueList)
@@ -53,6 +54,7 @@ class BTreeExtendedTest {
             tree.insert(i)
         }
 
+        // trees stopped splitting
         validateNodeSizes(tree.valueList, 4)
         validateTreeOrder(tree.valueList)
     }
@@ -102,7 +104,7 @@ class BTreeExtendedTest {
         // Insert enough values to trigger splits at multiple levels
         for (i in 1..100) {
             val value = i * 10
-            if (value != 500) {  // Skip the value that's already in the tree
+            if (value != 500) { // Skip the value that's already in the tree
                 tree.insert(value)
             }
         }
@@ -117,7 +119,10 @@ class BTreeExtendedTest {
     // Helper methods
 
     private fun validateNodeSizes(node: BTreeNode, maxSize: Int) {
-        assertTrue(node.elements.size <= maxSize, "Node size ${node.elements.size} exceeds max $maxSize")
+        assertTrue(
+            node.elements.size <= maxSize,
+            "Node size ${node.elements.size} exceeds max $maxSize",
+        )
 
         // Check children recursively
         node.elements.forEach { element ->
