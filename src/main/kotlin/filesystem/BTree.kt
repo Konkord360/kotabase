@@ -100,7 +100,6 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
         logger.debug { "Value $value inserted **********************" }
     }
 
-    // consider returning pair of the node with the index it should be put in
     private fun getInsertionNodeRecursive(
         node: BTreeNode,
         valueToBeInserted: BTreeElement,
@@ -108,11 +107,6 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
         val index = node.elements
             .binarySearch { it.value.compareTo(valueToBeInserted.value) }
             .let { if (it < 0) -(it + 1) else it }
-
-        if (index == node.elements.size)
-            node.elements[index - 1].right?.let {
-                return getInsertionNodeRecursive(it, valueToBeInserted)
-            }
 
         if (index < node.elements.size && valueToBeInserted.value < node.elements[index].value) {
             if (index > 0 && valueToBeInserted.value > node.elements[index - 1].value) {
@@ -123,6 +117,10 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
                 node.elements[0].left?.let {
                     return getInsertionNodeRecursive(it, valueToBeInserted)
                 }
+            }
+        } else if (index > 0) {
+            node.elements[index - 1].right?.let {
+                return getInsertionNodeRecursive(it, valueToBeInserted)
             }
         }
         return node
@@ -149,7 +147,10 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
         }
     }
 
-    // a little duplication of the logic since we get that information inside of the getInsertionNode
+// Fix shouldn't be needed - split should handle that - maybe tree should split its nodes and
+// not node itself
+// rethink the implementation to maybe preferably not need this shiet
+
     private fun getInsertionIndex(insertionNode: BTreeNode, valueToBeInserted: BTreeElement): Int {
         check(insertionNode.elements.indexOf(valueToBeInserted) == -1) {
             "Cannot insert duplicate values into B-Tree"
