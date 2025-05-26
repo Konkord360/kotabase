@@ -24,6 +24,8 @@ tasks.test {
     testLogging.showStandardStreams = true
     testLogging.showExceptions = true
     testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
     useJUnitPlatform()
 }
 

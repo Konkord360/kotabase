@@ -1,5 +1,6 @@
 package filesystem
 
+import io.klogging.NoCoLogging
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.equals.shouldBeEqual
@@ -11,10 +12,11 @@ import org.example.filesystem.BTree
 import org.example.filesystem.BTreeElement
 import org.example.filesystem.BTreeNode
 import org.junit.jupiter.api.Assertions.assertTrue
+import kotlin.system.measureTimeMillis
 
 // I should start using kotest
 // really need a better way of testing the exact structure
-class BTreeTest {
+class BTreeTest : NoCoLogging{
 
     // try writing some kind of DSL for the tree testing
     @Test
@@ -292,7 +294,7 @@ class BTreeTest {
         }
     }
 
-//    @Test
+    @Test
     fun testDeletion() {
         val tree = BTree(4)
         tree.insertAll(-1, 1, 2, 3, 5, 6)
@@ -335,5 +337,39 @@ class BTreeTest {
         // what should happen - one node with 4 keys or one nod with one left children
         // recursive pop
         // recursive merge
+    }
+
+//    @Test
+    fun timeTest() {
+        val uniqueRandoms = (0 until 1_000_000).shuffled().take(1_000_000).toMutableList()
+        logger.info { "generated 1_000_000 unique values ${uniqueRandoms.size}" }
+
+        logger.info { "tesing with a tree with a max node size of 4" }
+        val tree = BTree(uniqueRandoms.first())
+        uniqueRandoms.removeFirst()
+        val firstTime = measureTimeMillis {
+            tree.insertAll(*uniqueRandoms.toIntArray())
+
+        }
+        logger.info { "1_000_000 values inserted in $firstTime ms" }
+
+
+        logger.info { "testing with a tree with a max node size of 512" }
+        val tree2 = BTree(uniqueRandoms.first(), 512)
+        uniqueRandoms.removeFirst()
+        val second = measureTimeMillis {
+            tree2.insertAll(*uniqueRandoms.toIntArray())
+
+        }
+        logger.info { "1_000_000 values inserted in $second ms" }
+
+        logger.info { "testing with a tree with a max node size of 1024" }
+        val tree3 = BTree(uniqueRandoms.first(), 1024)
+        uniqueRandoms.removeFirst()
+        val third = measureTimeMillis {
+            tree3.insertAll(*uniqueRandoms.toIntArray())
+
+        }
+        logger.info { "1_000_000 values inserted in $third ms" }
     }
 }

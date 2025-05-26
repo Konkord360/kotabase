@@ -40,9 +40,9 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
     val valueList: BTreeNode = BTreeNode(mutableListOf(BTreeElement(root)))
 
     fun displayTreeByLevel() {
-        logger.info { "Displaying B-Tree level by level:" }
+        logger.debug { "Displaying B-Tree level by level:" }
         if (valueList.elements.isEmpty()) {
-            logger.info { "Tree is empty." }
+            logger.debug { "Tree is empty." }
             return
         }
 
@@ -56,16 +56,16 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
 
         while (queue.isNotEmpty()) {
             val nodesAtCurrentLevel = queue.size
-            logger.info { "--- Level $level ---" }
+            logger.debug { "--- Level $level ---" }
 
             repeat(nodesAtCurrentLevel) {
                 val currentNode = queue.removeFirst()
-                logger.info { "  Node elements: ${currentNode.values()}" }
+                logger.debug { "  Node elements: ${currentNode.values()}" }
 
                 for (element in currentNode.elements) {
                     element.left?.let { leftChild ->
                         if (visited.none { it === leftChild }) {
-                            logger.info {
+                            logger.debug {
                                 "    Left child of ${element.value}: ${leftChild.values()}"
                             }
                             queue.add(leftChild)
@@ -75,7 +75,7 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
 
                     element.right?.let { rightChild ->
                         if (visited.none { it === rightChild }) {
-                            logger.info {
+                            logger.debug {
                                 "    Right child of ${element.value}: ${rightChild.values()}"
                             }
                             queue.add(rightChild)
@@ -86,7 +86,7 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
             }
             level++
         }
-        logger.info { "--- End of B-Tree Display ---" }
+        logger.debug { "--- End of B-Tree Display ---" }
     }
 
     fun insertAll(vararg values: Int) {
@@ -94,139 +94,62 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
     }
 
     fun insert(value: Int) {
-        logger.info { "Inserting value into the B-Tree: $value **********************" }
+        logger.debug { "Inserting value into the B-Tree: $value **********************" }
         val newElement = BTreeElement(value, null, null)
         insertTreeElement(newElement)
-        logger.info { "Value $value inserted **********************" }
+        logger.debug { "Value $value inserted **********************" }
     }
 
-    // how does this even work lol?
-//    private fun getInsertionNodeRecursive(
-//        node: BTreeNode,
-//        valueToBeInserted: BTreeElement,
-//    ): BTreeNode {
-//        // Find the appropriate index based on value
-//        val index =
-//            node.elements
-//                .binarySearch { it.value.compareTo(valueToBeInserted.value) }
-//                .let { if (it < 0) -(it + 1) else it }
-//
-//        // If value is less than current element
-//        if (index < node.elements.size && valueToBeInserted.value < node.elements[index].value) {
-//            val childNode =
-//                if (index > 0) {
-//                    // Between two elements
-//                    if (valueToBeInserted.value > node.elements[index - 1].value) {
-//                        node.elements[index].left
-//                        // wtf?
-//                    } else {
-//                        node.elements[0].left
-//                    }
-//                } else {
-//                    // Smaller than first element
-//                    node.elements[0].left
-//                }
-//
-//            // If child exists, recurse down
-//            if (childNode != null && childNode.elements.isNotEmpty()) {
-//                return getInsertionNodeRecursive(childNode, valueToBeInserted)
-//            }
-//        }
-//        // If value is greater than current element
-//        else if (index > 0 && valueToBeInserted.value > node.elements[index - 1].value) {
-//            val childNode =
-//                if (index < node.elements.size) {
-//                    // Between two elements
-//                    if (valueToBeInserted.value < node.elements[index].value) {
-//                        node.elements[index - 1].right
-//                        // why that else? wtf? bigger then the previoius one and bigger then the
-//                        // current goes to the left?
-//                    } else {
-//                        node.elements[index].left
-//                    }
-//                } else {
-//                    // Greater than last element
-//                    node.elements[index - 1].right
-//                }
-//
-//            // If child exists, recurse down
-//            if (childNode != null && childNode.elements.isNotEmpty()) {
-//                return getInsertionNodeRecursive(childNode, valueToBeInserted)
-//            }
-//        }
-//
-//        // If we get here, this is the insertion node
-//        return node
-//    }
+    // consider returning pair of the node with the index it should be put in
+    private fun getInsertionNodeRecursive(
+        node: BTreeNode,
+        valueToBeInserted: BTreeElement,
+    ): BTreeNode {
+        val index = node.elements
+            .binarySearch { it.value.compareTo(valueToBeInserted.value) }
+            .let { if (it < 0) -(it + 1) else it }
 
-    // is there a problem when inserting a middle value? Meaning will it have two parents? - yes,
-    // but fixed with another function run
-        private fun getInsertionNodeRecursive(
-            node: BTreeNode,
-            valueToBeInserted: BTreeElement,
-        ): BTreeNode {
-            for (i in node.elements.indices) {
-                if (
-                    i == 0 &&
-                    valueToBeInserted.value < node.elements[i].value &&
-                        node.elements[i].left != null &&
-                        node.elements[i].left!!.elements.isNotEmpty()
-                ) {
-                    return getInsertionNodeRecursive(node.elements[i].left!!, valueToBeInserted)
-                } else if (
-                        i > 0 &&
-                        valueToBeInserted.value < node.elements[i].value &&
-                        valueToBeInserted.value > node.elements[i - 1].value &&
-                        node.elements[i].left != null &&
-                        node.elements[i].left!!.elements.isNotEmpty()
-                    ) {
-                        return getInsertionNodeRecursive(node.elements[i].left!!,
-     valueToBeInserted)
-                } else if (
-                    i < node.elements.size - 1 &&
-                        valueToBeInserted.value > node.elements[i].value &&
-                        valueToBeInserted.value < node.elements[i + 1].value &&
-                        node.elements[i].right != null &&
-                        node.elements[i].right!!.elements.isNotEmpty()
-                ) {
-                    return getInsertionNodeRecursive(node.elements[i].right!!, valueToBeInserted)
-                } else if (
-                    i == node.elements.size - 1 &&
-                        valueToBeInserted.value > node.elements[i].value &&
-                        node.elements[i].right != null &&
-                        node.elements[i].right!!.elements.isNotEmpty()
-                ) {
-                    return getInsertionNodeRecursive(node.elements[i].right!!, valueToBeInserted)
+        if (index == node.elements.size)
+            node.elements[index - 1].right?.let {
+                return getInsertionNodeRecursive(it, valueToBeInserted)
+            }
+
+        if (index < node.elements.size && valueToBeInserted.value < node.elements[index].value) {
+            if (index > 0 && valueToBeInserted.value > node.elements[index - 1].value) {
+                node.elements[index].left?.let {
+                    return getInsertionNodeRecursive(it, valueToBeInserted)
+                }
+            } else {
+                node.elements[0].left?.let {
+                    return getInsertionNodeRecursive(it, valueToBeInserted)
                 }
             }
-            return node
         }
+        return node
+    }
 
     private fun insertTreeElement(newElement: BTreeElement) {
-        logger.info { "Current list: ${valueList.values()}" }
-        logger.info { "trying to insert ${newElement.value}" }
+        logger.debug { "Current list: ${valueList.values()}" }
+        logger.debug { "trying to insert ${newElement.value}" }
 
         val insertionNode = getInsertionNodeRecursive(valueList, newElement)
         val index = getInsertionIndex(insertionNode, newElement)
         insertionNode.elements.add(index, newElement)
 
-        logger.info { "Updated list: ${insertionNode.values()}" }
-        logger.info { "Children values: ${insertionNode.childrenValues()}" }
+        logger.debug { "Updated list: ${insertionNode.values()}" }
+        logger.debug { "Children values: ${insertionNode.childrenValues()}" }
 
         if (insertionNode.elements.size > maxNodeSize) {
-            logger.info { "********* Node size exceeded, splitting the node *********" }
-            logger.info {
+            logger.debug { "********* Node size exceeded, splitting the node *********" }
+            logger.debug {
                 "Splitting at index ${maxNodeSize / 2}. Value ${insertionNode.elements[maxNodeSize / 2].value} becomes a parent"
             }
             insertionNode.splitNode()
-            logger.info { "********* Split finished *********" }
+            logger.debug { "********* Split finished *********" }
         }
     }
 
-    // Fix shouldn't be needed - split should handle that - maybe tree should split its nodes and
-    // not node itself
-    // rethink the implementation to maybe preferably not need this shiet
-
+    // a little duplication of the logic since we get that information inside of the getInsertionNode
     private fun getInsertionIndex(insertionNode: BTreeNode, valueToBeInserted: BTreeElement): Int {
         check(insertionNode.elements.indexOf(valueToBeInserted) == -1) {
             "Cannot insert duplicate values into B-Tree"
@@ -234,11 +157,11 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
 
         insertionNode.elements.forEachIndexed { index, listValue ->
             if (listValue.value > valueToBeInserted.value) {
-                logger.info { "value $valueToBeInserted should be inserted at index $index" }
+                logger.debug { "value $valueToBeInserted should be inserted at index $index" }
                 return index
             }
         }
-        logger.info {
+        logger.debug {
             "${valueToBeInserted.value} Should be inserted at the end of ${insertionNode.values()}"
         }
         return insertionNode.elements.size
@@ -246,17 +169,17 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
 
     private fun BTreeNode.splitNode() {
         check(this.elements.size > maxNodeSize) { "Cannot split a node that is not full" }
-        logger.info { "Splitting a node with values ${values()} }}" }
-        logger.info { "And children values ${childrenValues()}" }
+        logger.debug { "Splitting a node with values ${values()} }}" }
+        logger.debug { "And children values ${childrenValues()}" }
         val setOfChildrenParents = mutableListOf<List<Int>>()
         this.elements.forEach { element ->
             setOfChildrenParents.add(element.left?.parent?.values() ?: emptyList())
             setOfChildrenParents.add(element.right?.parent?.values() ?: emptyList())
         }
-        logger.info { "Children parents: $setOfChildrenParents" }
+        logger.debug { "Children parents: $setOfChildrenParents" }
         val parentNode = parent
         if (parentNode != null) {
-            logger.info { "And parent with values ${parentNode.values()}" }
+            logger.debug { "And parent with values ${parentNode.values()}" }
         }
 
         val safeCopy = this.elements.toMutableList()
@@ -280,29 +203,29 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
             element.right?.parent = newElement.right
         }
 
-        logger.info {
+        logger.debug {
             "new element with value ${newElement.value} and children ${newElement.childrenValues()} left element parent ${newElement.left?.parent?.values()} right element parent ${newElement.right?.parent?.values()}"
         }
 
         this.elements.clear()
         if (parentNode != null) {
-            logger.info { "Inserting split node back into parent" }
-            logger.info { "Parent node ${parentNode.values()}" }
+            logger.debug { "Inserting split node back into parent" }
+            logger.debug { "Parent node ${parentNode.values()}" }
             parentNode.insertNewElement(newElement)
         } else {
-            logger.info { "Split node was a root node" }
+            logger.debug { "Split node was a root node" }
             this.insertNewElement(newElement)
         }
     }
 
     private fun BTreeNode.insertNewElement(element: BTreeElement) {
-        logger.info { "New element parent node: ${values()}" }
+        logger.debug { "New element parent node: ${values()}" }
         element.left?.parent = this
         element.right?.parent = this
 
         val index = getInsertionIndex(this, element)
-        //        logger.info { "Inserting new element $element at index $index" }
-        logger.info {
+        //        logger.debug { "Inserting new element $element at index $index" }
+        logger.debug {
             "Inserting new element with value ${element.value} and children ${element.childrenValues()} at index $index"
         }
         this.elements.add(index, element)
@@ -318,21 +241,21 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
     }
 
     // perhaps parent could be an element and not a whole node
-    // only left child implementation now
+// only left child implementation now
     fun delete(value: Int) {
         val insertionNode = getInsertionNodeRecursive(valueList, BTreeElement(value, null, null))
         if (!insertionNode.values().contains(value)) {
-            logger.info { "Trying to remove value that is not present in the tree" }
+            logger.debug { "Trying to remove value that is not present in the tree" }
             return
         }
 
-        logger.info { "removing item $value from the node with values ${insertionNode.values()}" }
+        logger.debug { "removing item $value from the node with values ${insertionNode.values()}" }
         val elementToBeRemoved = insertionNode.elements.find { it.value == value }
-        logger.info { "removing element $elementToBeRemoved" }
+        logger.debug { "removing element $elementToBeRemoved" }
         // going from a child to a parent - it has to have elements
-        logger.info { "Node to remove from $insertionNode" }
-        logger.info { "Parent node ${insertionNode.parent}" }
-        logger.info { "Parent elements ${insertionNode.parent!!.values()}" }
+        logger.debug { "Node to remove from $insertionNode" }
+        logger.debug { "Parent node ${insertionNode.parent}" }
+        logger.debug { "Parent elements ${insertionNode.parent!!.values()}" }
         val result = insertionNode.parent!!.elements.find {
             // find the element in a parent whose child's element we try to remove
             // try to find in the right children first, then the left
@@ -341,29 +264,29 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
             it.left?.elements?.contains(elementToBeRemoved) == true
         }
         insertionNode.elements.remove(elementToBeRemoved)
-        logger.info { "Found $result" }
+        logger.debug { "Found $result" }
         val minimumElements = ceil(((maxNodeSize / 2)).toDouble())
-        logger.info { "Node size after deletion ${insertionNode.elements.size} and cannot be lower then $minimumElements" }
+        logger.debug { "Node size after deletion ${insertionNode.elements.size} and cannot be lower then $minimumElements" }
         if (insertionNode.elements.size < minimumElements) {
-            logger.info { "Size of the node is to small after deletion $insertionNode starting to rebalance" }
+            logger.debug { "Size of the node is to small after deletion $insertionNode starting to rebalance" }
             // parent node
-            logger.info { "Parent node ${insertionNode.parent}" }
+            logger.debug { "Parent node ${insertionNode.parent}" }
             // specific element with children
             if (result!!.left!!.elements.size < minimumElements) {
-                logger.info { "Left child need rebalancing" }
+                logger.debug { "Left child need rebalancing" }
                 val newLeftElement = insertionNode.parent!!.elements[0]
-                logger.info { "New left element $newLeftElement" }
+                logger.debug { "New left element $newLeftElement" }
                 val nodeToBorrowFrom = insertionNode.parent!!.elements[0].right
                 if (nodeToBorrowFrom!!.elements.size == minimumElements.toInt()) {
-                    logger.info { "Cannot borrow from the right child. Merge is required" }
+                    logger.debug { "Cannot borrow from the right child. Merge is required" }
                     // merge to the parent
                     if (insertionNode.parent!!.elements.size + nodeToBorrowFrom.elements.size + insertionNode.elements.size <= maxNodeSize) {
-                        logger.info { "Merging into the parent node" }
+                        logger.debug { "Merging into the parent node" }
                         insertionNode.parent!!.let { parent ->
                             val tempSet = mutableSetOf<BTreeElement>()
-                            logger.info { "Parent elements ${parent.elements}" }
-                            logger.info { "left child elements ${insertionNode.elements}" }
-                            logger.info { "right child elements ${nodeToBorrowFrom.elements}" }
+                            logger.debug { "Parent elements ${parent.elements}" }
+                            logger.debug { "left child elements ${insertionNode.elements}" }
+                            logger.debug { "right child elements ${nodeToBorrowFrom.elements}" }
 
                             newLeftElement.left = null
                             newLeftElement.right = null
@@ -372,12 +295,12 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
                             tempSet.addAll(insertionNode.elements)
                             tempSet.addAll(nodeToBorrowFrom.elements)
 
-                            logger.info { "new parent element $tempSet" }
+                            logger.debug { "new parent element $tempSet" }
                             parent.elements = tempSet.sortedBy { it.value }.toMutableList()
                         }
                     } // merge siblings
                     else {
-                        logger.info { "Merging sibling nodes" }
+                        logger.debug { "Merging sibling nodes" }
                     }
                 } else {
                     val promotedElement = nodeToBorrowFrom.elements[0]
@@ -387,20 +310,20 @@ data class BTree(val root: Int, val maxNodeSize: Int = 4) : NoCoLogging {
 
                     newLeftElement.left = elementToBeRemoved?.left
                     newLeftElement.right = elementToBeRemoved?.right
-                    logger.info { "New left element $newLeftElement" }
-//                logger.info { "New promoted element $promotedElement" }
+                    logger.debug { "New left element $newLeftElement" }
+//                logger.debug { "New promoted element $promotedElement" }
                     promotedElement.right!!.elements.remove(promotedElement)
                     insertionNode.parent!!.elements.remove(newLeftElement)
                     insertionNode.parent!!.elements.add(promotedElement)
                     // this throws NPE
 //                promotedElement.left!!.elements.add(newLeftElement)
                     insertionNode.elements.add(newLeftElement)
-                    logger.info { "Parent after rebalance ${insertionNode.parent!!.elements}" }
-                    logger.info { "left child after rebalance ${insertionNode.parent!!.elements[0].left}" }
-                    logger.info { "right child after rebalance ${insertionNode.parent!!.elements[0].right}" }
+                    logger.debug { "Parent after rebalance ${insertionNode.parent!!.elements}" }
+                    logger.debug { "left child after rebalance ${insertionNode.parent!!.elements[0].left}" }
+                    logger.debug { "right child after rebalance ${insertionNode.parent!!.elements[0].right}" }
                 }
             } else {
-                logger.info { "Right child need rebalancing" }
+                logger.debug { "Right child need rebalancing" }
             }
 
 
